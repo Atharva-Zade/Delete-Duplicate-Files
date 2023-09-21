@@ -1,0 +1,57 @@
+import os
+import hashlib
+
+# Function to calculate the MD5 hash of a file
+def calculate_file_hash(file_path):
+    hasher = hashlib.md5()
+    with open(file_path, 'rb') as file:
+        while True:
+            data = file.read(4096)  # Read in 4K chunks
+            if not data:
+                break
+            hasher.update(data)
+    return hasher.hexdigest()
+
+# Function to find and report duplicate files
+def find_and_clear_duplicate_files(directory):
+    file_hash_map = {}  # Stores file hashes and paths
+    total_size_cleared = 0  # Total size that can be cleared
+
+    # Iterate through the directory and its subdirectories
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            file_path = os.path.join(root, file)
+            file_hash = calculate_file_hash(file_path)
+
+            if file_hash in file_hash_map:
+                # Found a duplicate file
+                original_file = file_hash_map[file_hash]
+                file_size = os.path.getsize(file_path)
+                total_size_cleared += file_size
+
+                print(f'Duplicate found: {file_path}')
+                print(f'Original file: {original_file}')
+                print(f'Size to be cleared: {file_size} bytes\n')
+
+                # Uncomment the following lines to delete duplicate files
+                # os.remove(file_path)
+                # print(f'Deleted: {file_path}\n')
+
+            else:
+                file_hash_map[file_hash] = file_path
+
+    return total_size_cleared
+
+if __name__ == "__main__":
+    directory_to_scan = input("Enter the directory to scan for duplicate files: ")
+    total_size_cleared = find_and_clear_duplicate_files(directory_to_scan)
+
+    print(f"Total size that can be cleared: {total_size_cleared} bytes")
+
+    choice = input("Do you want to delete the duplicate files? (yes/no): ").strip().lower()
+    if choice == 'yes':
+        find_and_clear_duplicate_files(directory_to_scan)
+        print("Duplicate files deleted.")
+    else:
+        print("No files were deleted.")
+
